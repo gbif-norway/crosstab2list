@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+
+    <!-- Datatables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/dataTables.bootstrap5.min.css">
+
+    <style>
+      h1 { margin-top: 1.2em; text-align: center; }
+      h1 small, h2 small { font-size: 0.4em; }
+      footer { margin: 4em 0; border-top: 1px solid #CFCFCF; padding-top: 1em; }
+      h2 { font-size: 1.4em; margin-top: 2em }
+      #source, #resultContainer  { display: none; }
+      .table-demo { font-size: 0.7em; }
+      .table-demo td { padding: 0.3rem; }
+      .on { background-color: #fff59b !important; }
+      td.header { font-weight: bold; border-right: 2px solid black; }
+      th, td.header { background-color: #efefef !important; }
+      table.table-demo-result { width: 100% !important; display: table !important; }
+      table.table-demo-source th:first-child { border-right: 2px solid black; }
+      #result {  width: 100% !important; }
+    </style>
+    <title>Online crosstab to list converter</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1>
+        Online crosstab to list converter
+        <a class="btn btn-success" data-bs-toggle="modal" data-bs-target="#learnMore" role="button" aria-controls="learnMore">
+          Learn more <i class="bi bi-info-circle-fill"></i>
+        </a>
+      </h1>
+
+      <h2>
+        Upload crosstab CSV file
+         <small>(preview below)</small>
+        <div style="display: inline-block"><input class="form-control" type="file" id="upload" accept=".csv"></div>
+        or <button id="useDefaultSource" type="button" class="btn btn-outline-secondary">Use default crosstab data example</button>
+      </h2>
+
+      <table id="source" class="table table-success table-hover"><thead><tr></tr></thead><tbody></tbody></table>
+
+      <div id="resultContainer">
+        <h2>
+          Conversion result <small>(preview below)</small>
+          <a id="download" role="button" class="btn btn-primary">Download conversion result file <i class="bi bi-file-earmark-arrow-down"></i></a>
+        </h2>
+        <table id="result" class="table table-info table-hover"><thead><tr></tr></thead><tbody></tbody></table>
+      </div>
+
+      <footer>Send feedback to <a href="mailto:helpdesk@gbif.no">GBIF Norway</a></footer>
+    </div>
+
+    <!-- Modal contents -->
+    <div id="learnMore" class="modal fade" tabindex="-1"  aria-labelledby="learnMoreLabel" aria-hidden="true">
+      <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="learnMoreLabel">Learn more</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Crosstab formatted data has data in two dimensions, i.e. <strong>both a 'header' column and a 'header' row</strong>:</p>
+          <table class="table table-bordered table-demo table-demo-source">
+            <thead><tr><th>ScientificName</th><th>Area 1</th><th>Area 2</th><th>Area 3</th></tr></thead>
+            <tbody>
+              <tr><td class="header">Malthodes sp.</td>       <td id="cs1a">5</td><td id="cs1b">0</td><td id="cs1c">2</td></tr>
+              <tr><td class="header">Podabrus alpinus</td>    <td id="cs2a">1</td><td id="cs2b">0</td><td id="cs2c">0</td></tr>
+              <tr><td class="header">Podistra schoenherri</td><td id="cs3a">0</td><td id="cs3b">0</td><td id="cs3c">4</td></tr>
+            </tbody>
+          </table>
+          <p>When converted, this data is flattened into a one dimensional list. It now has a single header row and <strong>one row per (non-header) cell</strong> in the crosstab table:
+          <div class="container-fluid"><table class="table table-bordered table-demo table-demo-result" style="width:100%;">
+            <thead><tr><th>ScientificName</th><th>[Column heading]</th><th>[Cell value]</th></tr></thead>
+            <tbody>
+              <tr id='tr1'><td>Malthodes sp.</td><td>Area 1</td><td>5</td></tr>
+              <tr id='tr2'><td>Malthodes sp.</td><td>Area 2</td><td>0</td></tr>
+              <tr id='tr3'><td>Malthodes sp.</td><td>Area 3</td><td>2</td></tr>
+              <tr id='tr4'><td>Podabrus alpinus</td><td>Area 1</td><td>1</td></tr>
+              <tr id='tr5'><td>Podabrus alpinus</td><td>Area 2</td><td>0</td></tr>
+              <tr id='tr6'><td>Podabrus alpinus</td><td>Area 3</td><td>0</td></tr>
+              <tr id='tr7'><td>Podabrus schoenherri</td><td>Area 1</td><td>0</td></tr>
+              <tr id='tr8'><td>Podabrus schoenherri</td><td>Area 2</td><td>0</td></tr>
+              <tr id='tr9'><td>Podabrus schoenherri</td><td>Area 3</td><td>4</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Papa parse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.1/papaparse.min.js" integrity="sha512-EbdJQSugx0nVWrtyK3JdQQ/03mS3Q1UiAhRtErbwl1YL/+e2hZdlIcSURxxh7WXHTzn83sjlh2rysACoJGfb6g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- Datatables -->
+    <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+      $(document).ready(function() {
+        const idMap = {
+          'cs1a': 'tr1', 'cs1b': 'tr2', 'cs1c': 'tr3',
+          'cs2a': 'tr4', 'cs2b': 'tr5', 'cs2c': 'tr6',
+          'cs3a': 'tr7', 'cs3b': 'tr8', 'cs3c': 'tr9'
+        }
+        var idMapInvert = {};
+        for(var key in idMap){ idMapInvert[idMap[key]] = key; }
+        function addOnClass() {
+          $(this).addClass('on');
+          $('#' + idMap[$(this).attr('id')]).addClass('on');
+        };
+        function removeOnClass() {
+          $(this).removeClass('on');
+          $('#' + idMap[$(this).attr('id')]).removeClass('on');
+        };
+        function addOnSourceClass() {
+          $(this).addClass('on');
+          $('#' + idMapInvert[$(this).attr('id')]).addClass('on');
+        };
+        function removeOnSourceClass() {
+          $(this).removeClass('on');
+          $('#' + idMapInvert[$(this).attr('id')]).removeClass('on');
+        };
+        $('.table-demo-source td').not('.header').hover(addOnClass, removeOnClass);
+        $('.table-demo-result tbody tr').hover(addOnSourceClass, removeOnSourceClass);
+
+        $('#upload').on('change', function(e) {
+          Papa.parse(e.target.files[0], {
+            config: { skipEmptyLines: 'greedy' },
+            complete: function(result) {
+              var source = result.data;
+
+              // Remove empty columns
+              var empties = [];
+              var columns = source.shift().filter(function(el, index) {
+                if(el === '') { empties.push(index); }
+                return el !== '';
+              });
+              for(const emptyIndex of empties.reverse()) {
+                for(i = 0; i < source.length; i++) {
+                  source[i].splice(emptyIndex, 1);
+                }
+              }
+              convertData(columns, source);
+            }
+          });
+        });
+
+        $('#useDefaultSource').on('click', function(e) {
+          convertData(
+            ['scientificName', 'area1', 'area2'],
+            [
+              ['speciesa', '1', '5'],
+              ['speciesb', '0', '1'],
+              ['speciesc', '2', '3'],
+              ['speciesd', '2', '2'],
+              ['speciese', '0', '0'],
+              ['speciesf', '1', '0'],
+              ['speciesg', '0', '1'],
+            ]);
+        });
+      });
+
+      var resultDataTable = false;
+      let convertData = (columns, source) => {
+          if(resultDataTable) {
+            resultDataTable.destroy();
+            $('#source thead tr').empty();
+            $('#source tbody tr').empty();
+          }
+          // Populate source table
+          addHeader(columns, 'source');
+          makeTable(source, 'source');
+          $('#source').show();
+
+          // Populate results datatable
+          var resultData = crosstabToList(source, columns);
+          var resultColumns = [columns[0], '[Cell value]', '[Column heading]'];
+          resultDataTable = $('#result').DataTable( {
+              data: resultData,
+              columns: [
+                  { title: resultColumns[0] },
+                  { title: resultColumns[1] },
+                  { title: resultColumns[2] }
+              ],
+              ordering: false
+          } );
+          $('#resultContainer').show();
+
+          // Scroll to results
+          $([document.documentElement, document.body]).animate({
+             scrollTop: $("#resultContainer").offset().top
+          }, 500);
+
+          // Enable download button
+          var resultDataFull = [resultColumns].concat(resultData);
+          var csv = Papa.unparse(resultDataFull);
+
+          var csvData = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+
+          $('#download').attr('href', window.URL.createObjectURL(csvData));
+          $('#download').attr('download', 'converted-crosstab.csv');
+      }
+
+      let crosstabToList = (source, columns) => {
+        result = [];
+        for(const row of source) {
+          for(var i = 1; i < row.length; i++) {
+            result.push([row[0], row[i], columns[i]]);
+          }
+        }
+        return result;
+      }
+
+      let makeTable = (data, elementID) => {
+        addRows(data.slice(0, 3), elementID);
+        $(`<tr><td colspan="${data[0].length}">...</td></tr>`).appendTo(`#${elementID}>tbody`);
+        addRows(data.slice(data.length - 3), elementID);
+      }
+
+      let addHeader = (columns, elementID) => {
+        for(const val of columns) {
+          $(`<th>${val}</th>`).appendTo(`#${elementID}>thead>tr`);
+        }
+      }
+
+      let addRows = (rows, elementID) => {
+        for(const row of rows) {
+          var rowElement = $('<tr>');
+          for(const val of row) {
+            $(`<td>${val}</td>`).appendTo(rowElement);
+          }
+          rowElement.appendTo(`#${elementID}>tbody`);
+        }
+      }
+    </script>
+  </body>
+</html>
